@@ -79,7 +79,7 @@ namespace DarlingToDoList.Windows
                 if (isEditMode)
                 {
                     ImGui.SameLine();
-                    if (ImGui.Button($" X##DeleteCategory_{category.Key}"))
+                    if (ImGui.Button($"X##DeleteCategory_{category.Key}"))
                     {
                         Plugin.Configuration.Categories.Remove(category.Key);
                         Plugin.Configuration.Save();
@@ -114,7 +114,7 @@ namespace DarlingToDoList.Windows
                     if (isEditMode)
                     {
                         ImGui.SameLine();
-                        if (ImGui.Button($" X##DeleteItem_{category.Key}_{item.Name}"))
+                        if (ImGui.Button($"X##DeleteItem_{category.Key}_{item.Name}"))
                         {
                             category.Value.Remove(item);
                             Plugin.Configuration.Save();
@@ -127,7 +127,7 @@ namespace DarlingToDoList.Windows
                 if (isEditMode)
                 {
                     ImGui.Spacing();
-                    if (ImGui.Button($" +##{category.Key}"))
+                    if (ImGui.Button($"+##{category.Key}"))
                     {
                         ImGui.OpenPopup($"Add To-Do Item##{category.Key}");
                     }
