@@ -28,7 +28,6 @@ namespace DarlingToDoList.Windows
 
             Plugin = plugin;
             DebugWindow = new DebugWindow(plugin);
-            CheckResets();
         }
 
         public void Dispose()
@@ -38,6 +37,9 @@ namespace DarlingToDoList.Windows
 
         public override void Draw()
         {
+            // Ensure the reset checks are performed
+            CheckResets();
+
             ImGui.Text($"The random config bool is {Plugin.Configuration.SomePropertyToBeSavedAndWithADefault}");
 
             if (ImGui.Button("Show Settings"))
@@ -229,12 +231,11 @@ namespace DarlingToDoList.Windows
             var now = DateTime.UtcNow;
             var lastResetCheck = Plugin.Configuration.LastResetCheck;
 
-            var dailyResetTime = new TimeSpan(15, 0, 0); // 3 PM UTC, equivalent to 11 AM EDT / 5 PM CEST
-            var weeklyResetDay = DayOfWeek.Tuesday;
-            var weeklyResetTime = new TimeSpan(8, 0, 0); // 8 AM UTC, equivalent to 4 AM EDT / 10 AM CEST
+            var dailyResetTime = new DateTime(now.Year, now.Month, now.Day, 15, 0, 0, DateTimeKind.Utc); // 3 PM UTC, equivalent to 11 AM EDT / 5 PM CEST
+            var weeklyResetTime = new DateTime(now.Year, now.Month, now.Day, 8, 0, 0, DateTimeKind.Utc); // 8 AM UTC, equivalent to 4 AM EDT / 10 AM CEST
 
-            // Daily reset check
-            if (now.TimeOfDay >= dailyResetTime && lastResetCheck.Date < now.Date)
+            // Check if a daily reset has occurred
+            if (now >= dailyResetTime && lastResetCheck < dailyResetTime)
             {
                 foreach (var category in Plugin.Configuration.Categories.Values)
                 {
@@ -248,8 +249,8 @@ namespace DarlingToDoList.Windows
                 }
             }
 
-            // Weekly reset check
-            if (now.DayOfWeek == weeklyResetDay && now.TimeOfDay >= weeklyResetTime && lastResetCheck < now.Date)
+            // Check if a weekly reset has occurred
+            if (now.DayOfWeek == DayOfWeek.Tuesday && now >= weeklyResetTime && lastResetCheck < weeklyResetTime)
             {
                 foreach (var category in Plugin.Configuration.Categories.Values)
                 {
