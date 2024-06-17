@@ -1,81 +1,74 @@
 using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using System.IO;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Services;
 using DarlingToDoList.Windows;
+using Dalamud.Plugin.Services;
 
-namespace DarlingToDoList;
-
-public sealed class Plugin : IDalamudPlugin
+namespace DarlingToDoList
 {
-    private const string CommandName = "/dtd";
-
-    private DalamudPluginInterface PluginInterface { get; init; }
-    private ICommandManager CommandManager { get; init; }
-    public Configuration Configuration { get; init; }
-
-    public readonly WindowSystem WindowSystem = new("DarlingToDoList");
-    private ConfigWindow ConfigWindow { get; init; }
-    private MainWindow MainWindow { get; init; }
-
-    public Plugin(
-        [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-        [RequiredVersion("1.0")] ICommandManager commandManager,
-        [RequiredVersion("1.0")] ITextureProvider textureProvider)
+    public sealed class Plugin : IDalamudPlugin
     {
-        PluginInterface = pluginInterface;
-        CommandManager = commandManager;
+        private const string CommandName = "/dtd";
 
-        Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-        Configuration.Initialize(PluginInterface);
+        private DalamudPluginInterface PluginInterface { get; init; }
+        private ICommandManager CommandManager { get; init; }
+        public Configuration Configuration { get; init; }
 
-        // you might normally want to embed resources and load them from the manifest stream
-        var file = new FileInfo(Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png"));
+        public readonly WindowSystem WindowSystem = new("DarlingToDoList");
+        private ConfigWindow ConfigWindow { get; init; }
+        private MainWindow MainWindow { get; init; }
+        private DebugWindow DebugWindow { get; init; }
 
-        // ITextureProvider takes care of the image caching and dispose
-        var goatImage = textureProvider.GetTextureFromFile(file);
-
-        ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, goatImage);
-
-        WindowSystem.AddWindow(ConfigWindow);
-        WindowSystem.AddWindow(MainWindow);
-
-        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+        public Plugin(
+            [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
+            [RequiredVersion("1.0")] ICommandManager commandManager)
         {
-            HelpMessage = "Open to do UI"
-        });
+            PluginInterface = pluginInterface;
+            CommandManager = commandManager;
 
-        PluginInterface.UiBuilder.Draw += DrawUI;
+            Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            Configuration.Initialize(PluginInterface);
 
-        // This adds a button to the plugin installer entry of this plugin which allows
-        // to toggle the display status of the configuration ui
-        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
+            ConfigWindow = new ConfigWindow(this);
+            MainWindow = new MainWindow(this);
+            DebugWindow = new DebugWindow(this);
 
-        // Adds another button that is doing the same but for the main ui of the plugin
-        PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
+            WindowSystem.AddWindow(ConfigWindow);
+            WindowSystem.AddWindow(MainWindow);
+            WindowSystem.AddWindow(DebugWindow);
+
+            CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+            {
+                HelpMessage = "Open to do UI"
+            });
+
+            PluginInterface.UiBuilder.Draw += DrawUI;
+
+            PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
+            PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
+        }
+
+        public void Dispose()
+        {
+            WindowSystem.RemoveAllWindows();
+
+            ConfigWindow.Dispose();
+            MainWindow.Dispose();
+            DebugWindow.Dispose();
+
+            CommandManager.RemoveHandler(CommandName);
+        }
+
+        private void OnCommand(string command, string args)
+        {
+            ToggleMainUI();
+        }
+
+        private void DrawUI() => WindowSystem.Draw();
+
+        public void ToggleConfigUI() => ConfigWindow.Toggle();
+        public void ToggleDebugUI() => DebugWindow.Toggle();
+        public void ToggleMainUI() => MainWindow.Toggle();
     }
-
-    public void Dispose()
-    {
-        WindowSystem.RemoveAllWindows();
-
-        ConfigWindow.Dispose();
-        MainWindow.Dispose();
-
-        CommandManager.RemoveHandler(CommandName);
-    }
-
-    private void OnCommand(string command, string args)
-    {
-        // in response to the slash command, just toggle the display status of our main ui
-        ToggleMainUI();
-    }
-
-    private void DrawUI() => WindowSystem.Draw();
-
-    public void ToggleConfigUI() => ConfigWindow.Toggle();
-    public void ToggleMainUI() => MainWindow.Toggle();
 }

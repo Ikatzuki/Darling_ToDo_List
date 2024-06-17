@@ -1,28 +1,45 @@
-﻿using Dalamud.Configuration;
+using Dalamud.Configuration;
 using Dalamud.Plugin;
 using System;
+using System.Collections.Generic;
 
-namespace DarlingToDoList;
-
-[Serializable]
-public class Configuration : IPluginConfiguration
+namespace DarlingToDoList
 {
-    public int Version { get; set; } = 0;
-
-    public bool IsConfigWindowMovable { get; set; } = true;
-    public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
-
-    // the below exist just to make saving less cumbersome
-    [NonSerialized]
-    private DalamudPluginInterface? PluginInterface;
-
-    public void Initialize(DalamudPluginInterface pluginInterface)
+    [Serializable]
+    public class Configuration : IPluginConfiguration
     {
-        PluginInterface = pluginInterface;
+        public int Version { get; set; } = 0;
+
+        public bool IsConfigWindowMovable { get; set; } = true;
+        public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
+
+        // Categories and their items
+        public Dictionary<string, List<ToDoItem>> Categories { get; set; } = new Dictionary<string, List<ToDoItem>>();
+
+        // Last reset check timestamp
+        public DateTime LastResetCheck { get; set; } = DateTime.UtcNow;
+
+        // Save method
+        [NonSerialized]
+        private DalamudPluginInterface? PluginInterface;
+
+        public void Initialize(DalamudPluginInterface pluginInterface)
+        {
+            PluginInterface = pluginInterface;
+        }
+
+        public void Save()
+        {
+            PluginInterface!.SavePluginConfig(this);
+        }
     }
 
-    public void Save()
+    [Serializable]
+    public class ToDoItem
     {
-        PluginInterface!.SavePluginConfig(this);
+        public string Name { get; set; }
+        public bool IsCompleted { get; set; }
+        public bool ResetDaily { get; set; } // New property to indicate if the item should reset daily
+        public bool ResetWeekly { get; set; } // New property to indicate if the item should reset weekly
     }
 }
