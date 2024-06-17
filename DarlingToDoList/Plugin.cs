@@ -4,6 +4,7 @@ using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using DarlingToDoList.Windows;
 using Dalamud.Plugin.Services;
+using ImGuiNET;
 
 namespace DarlingToDoList
 {
@@ -16,7 +17,6 @@ namespace DarlingToDoList
         public Configuration Configuration { get; init; }
 
         public readonly WindowSystem WindowSystem = new("DarlingToDoList");
-        private ConfigWindow ConfigWindow { get; init; }
         private MainWindow MainWindow { get; init; }
         private DebugWindow DebugWindow { get; init; }
 
@@ -30,11 +30,9 @@ namespace DarlingToDoList
             Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             Configuration.Initialize(PluginInterface);
 
-            ConfigWindow = new ConfigWindow(this);
             MainWindow = new MainWindow(this);
             DebugWindow = new DebugWindow(this);
 
-            WindowSystem.AddWindow(ConfigWindow);
             WindowSystem.AddWindow(MainWindow);
             WindowSystem.AddWindow(DebugWindow);
 
@@ -45,7 +43,6 @@ namespace DarlingToDoList
 
             PluginInterface.UiBuilder.Draw += DrawUI;
 
-            PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
             PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
         }
 
@@ -53,7 +50,6 @@ namespace DarlingToDoList
         {
             WindowSystem.RemoveAllWindows();
 
-            ConfigWindow.Dispose();
             MainWindow.Dispose();
             DebugWindow.Dispose();
 
@@ -67,7 +63,6 @@ namespace DarlingToDoList
 
         private void DrawUI() => WindowSystem.Draw();
 
-        public void ToggleConfigUI() => ConfigWindow.Toggle();
         public void ToggleDebugUI() => DebugWindow.Toggle();
         public void ToggleMainUI() => MainWindow.Toggle();
     }

@@ -10,14 +10,14 @@ namespace DarlingToDoList
     {
         public int Version { get; set; } = 0;
 
-        public bool IsConfigWindowMovable { get; set; } = true;
-        public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
-
         // Categories and their items
         public Dictionary<string, List<ToDoItem>> Categories { get; set; } = new Dictionary<string, List<ToDoItem>>();
 
         // Last reset check timestamp
         public DateTime LastResetCheck { get; set; } = DateTime.UtcNow;
+
+        // Window lock state
+        public bool IsWindowLocked { get; set; } = false; // Default to unlocked
 
         // Save method
         [NonSerialized]

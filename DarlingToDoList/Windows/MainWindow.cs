@@ -18,7 +18,7 @@ namespace DarlingToDoList.Windows
         private bool isEditMode = false;
 
         public MainWindow(Plugin plugin)
-            : base("Darling To Do List###Main Window")
+            : base("Darling To Do List###Main Window", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
         {
             SizeConstraints = new WindowSizeConstraints
             {
@@ -28,6 +28,9 @@ namespace DarlingToDoList.Windows
 
             Plugin = plugin;
             DebugWindow = new DebugWindow(plugin);
+
+            // Set the initial lock state based on configuration
+            Flags = Plugin.Configuration.IsWindowLocked ? ImGuiWindowFlags.NoMove : ImGuiWindowFlags.None;
         }
 
         public void Dispose()
@@ -40,20 +43,6 @@ namespace DarlingToDoList.Windows
             // Ensure the reset checks are performed
             CheckResets();
 
-            ImGui.Text($"The random config bool is {Plugin.Configuration.SomePropertyToBeSavedAndWithADefault}");
-
-            if (ImGui.Button("Show Settings"))
-            {
-                Plugin.ToggleConfigUI();
-            }
-
-            ImGui.SameLine();
-
-            if (ImGui.Button("Debug Info"))
-            {
-                Plugin.ToggleDebugUI();
-            }
-
             // To-do list section
             ImGui.Spacing();
             ImGui.Text("To-Do List");
@@ -63,7 +52,24 @@ namespace DarlingToDoList.Windows
                 isEditMode = !isEditMode;
             }
 
-            // Separator line below "To-Do List" text
+            ImGui.SameLine();
+
+            if (ImGui.Button("Debug Info"))
+            {
+                Plugin.ToggleDebugUI();
+            }
+
+            ImGui.SameLine();
+
+            // Lock/Unlock button
+            if (ImGui.Button(Plugin.Configuration.IsWindowLocked ? "Unlock Window" : "Lock Window"))
+            {
+                Plugin.Configuration.IsWindowLocked = !Plugin.Configuration.IsWindowLocked;
+                Flags = Plugin.Configuration.IsWindowLocked ? ImGuiWindowFlags.NoMove : ImGuiWindowFlags.None;
+                Plugin.Configuration.Save();
+            }
+
+            // Separator line below the top bar
             DrawSeparatorLine();
 
             ImGui.Spacing();
