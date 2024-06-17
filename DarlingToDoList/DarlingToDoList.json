@@ -1,8 +1,8 @@
 {
   "Author": "Darling",
   "Name": "Darling To Do List",
-  "Punchline": "A short one-liner that shows up in /xlplugins.",
-  "Description": "A description that shows up in /xlplugins. List any major slash-command(s).",
+  "Punchline": "A to-do list to keep track of the things you have to do!",
+  "Description": "A to-do list that allows you to add custom categories and items to remember the things you have to do!",
   "ApplicableVersion": "any",
   "Tags": [
     "sample",
