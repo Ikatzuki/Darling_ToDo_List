@@ -56,11 +56,6 @@ namespace DarlingToDoList.Windows
             ImGui.Spacing();
             ImGui.Text("To-Do List");
             ImGui.SameLine();
-            if (ImGui.Button("New Category"))
-            {
-                ImGui.OpenPopup("New Category Popup");
-            }
-            ImGui.SameLine();
             if (ImGui.Button(isEditMode ? "Exit Edit Mode" : "Edit Mode"))
             {
                 isEditMode = !isEditMode;
@@ -69,29 +64,6 @@ namespace DarlingToDoList.Windows
             // Separator line below "To-Do List" text
             DrawSeparatorLine();
 
-            // Handle new category popup
-            if (ImGui.BeginPopup("New Category Popup"))
-            {
-                ImGui.InputText("Category Name", ref newCategoryName, 100);
-                if (ImGui.Button("Create"))
-                {
-                    if (!string.IsNullOrEmpty(newCategoryName) && !Plugin.Configuration.Categories.ContainsKey(newCategoryName))
-                    {
-                        Plugin.Configuration.Categories.Add(newCategoryName, new List<ToDoItem>());
-                        newCategoryName = string.Empty; // Clear the input text
-                        Plugin.Configuration.Save();
-                        ImGui.CloseCurrentPopup();
-                    }
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Cancel"))
-                {
-                    newCategoryName = string.Empty;
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.EndPopup();
-            }
-
             ImGui.Spacing();
             ImGui.Spacing();
 
@@ -99,48 +71,20 @@ namespace DarlingToDoList.Windows
             foreach (var category in Plugin.Configuration.Categories)
             {
                 ImGui.Text(category.Key);
+
+                // Add dummy space to ensure consistent spacing
+                ImGui.SameLine();
+                ImGui.Dummy(new Vector2(0, 25));
+
                 if (isEditMode)
                 {
                     ImGui.SameLine();
-                    if (ImGui.Button($"+##{category.Key}"))
-                    {
-                        ImGui.OpenPopup($"Add To-Do Item##{category.Key}");
-                    }
-                    ImGui.SameLine();
-                    if (ImGui.Button($"X##DeleteCategory_{category.Key}"))
+                    if (ImGui.Button($" X##DeleteCategory_{category.Key}"))
                     {
                         Plugin.Configuration.Categories.Remove(category.Key);
                         Plugin.Configuration.Save();
                         break;
                     }
-                }
-
-                if (ImGui.BeginPopup($"Add To-Do Item##{category.Key}"))
-                {
-                    ImGui.InputText("To-Do Item", ref newTodoItem, 100);
-                    ImGui.Checkbox("Reset Daily", ref newTodoItemResetDaily);
-                    ImGui.Checkbox("Reset Weekly", ref newTodoItemResetWeekly);
-                    if (ImGui.Button("Add"))
-                    {
-                        if (!string.IsNullOrEmpty(newTodoItem))
-                        {
-                            Plugin.Configuration.Categories[category.Key].Add(new ToDoItem { Name = newTodoItem, IsCompleted = false, ResetDaily = newTodoItemResetDaily, ResetWeekly = newTodoItemResetWeekly });
-                            newTodoItem = string.Empty; // Clear the input text
-                            newTodoItemResetDaily = false; // Reset the checkbox
-                            newTodoItemResetWeekly = false; // Reset the checkbox
-                            Plugin.Configuration.Save();
-                            ImGui.CloseCurrentPopup();
-                        }
-                    }
-                    ImGui.SameLine();
-                    if (ImGui.Button("Cancel"))
-                    {
-                        newTodoItem = string.Empty;
-                        newTodoItemResetDaily = false; // Reset the checkbox
-                        newTodoItemResetWeekly = false; // Reset the checkbox
-                        ImGui.CloseCurrentPopup();
-                    }
-                    ImGui.EndPopup();
                 }
 
                 ImGui.Indent();
@@ -170,7 +114,7 @@ namespace DarlingToDoList.Windows
                     if (isEditMode)
                     {
                         ImGui.SameLine();
-                        if (ImGui.Button($"X##DeleteItem_{category.Key}_{item.Name}"))
+                        if (ImGui.Button($" X##DeleteItem_{category.Key}_{item.Name}"))
                         {
                             category.Value.Remove(item);
                             Plugin.Configuration.Save();
@@ -178,7 +122,77 @@ namespace DarlingToDoList.Windows
                         }
                     }
                 }
+
+                // Add new item button at the end of the items list
+                if (isEditMode)
+                {
+                    ImGui.Spacing();
+                    if (ImGui.Button($" +##{category.Key}"))
+                    {
+                        ImGui.OpenPopup($"Add To-Do Item##{category.Key}");
+                    }
+
+                    if (ImGui.BeginPopup($"Add To-Do Item##{category.Key}"))
+                    {
+                        ImGui.InputText("To-Do Item", ref newTodoItem, 100);
+                        ImGui.Checkbox("Reset Daily", ref newTodoItemResetDaily);
+                        ImGui.Checkbox("Reset Weekly", ref newTodoItemResetWeekly);
+                        if (ImGui.Button("Add"))
+                        {
+                            if (!string.IsNullOrEmpty(newTodoItem))
+                            {
+                                Plugin.Configuration.Categories[category.Key].Add(new ToDoItem { Name = newTodoItem, IsCompleted = false, ResetDaily = newTodoItemResetDaily, ResetWeekly = newTodoItemResetWeekly });
+                                newTodoItem = string.Empty; // Clear the input text
+                                newTodoItemResetDaily = false; // Reset the checkbox
+                                newTodoItemResetWeekly = false; // Reset the checkbox
+                                Plugin.Configuration.Save();
+                                ImGui.CloseCurrentPopup();
+                            }
+                        }
+                        ImGui.SameLine();
+                        if (ImGui.Button("Cancel"))
+                        {
+                            newTodoItem = string.Empty;
+                            newTodoItemResetDaily = false; // Reset the checkbox
+                            newTodoItemResetWeekly = false; // Reset the checkbox
+                            ImGui.CloseCurrentPopup();
+                        }
+                        ImGui.EndPopup();
+                    }
+                }
                 ImGui.Unindent();
+            }
+
+            // Show "New Category" button in edit mode at the end of the categories list
+            if (isEditMode)
+            {
+                ImGui.Spacing();
+                if (ImGui.Button("New Category"))
+                {
+                    ImGui.OpenPopup("New Category Popup");
+                }
+
+                if (ImGui.BeginPopup("New Category Popup"))
+                {
+                    ImGui.InputText("Category Name", ref newCategoryName, 100);
+                    if (ImGui.Button("Create"))
+                    {
+                        if (!string.IsNullOrEmpty(newCategoryName) && !Plugin.Configuration.Categories.ContainsKey(newCategoryName))
+                        {
+                            Plugin.Configuration.Categories.Add(newCategoryName, new List<ToDoItem>());
+                            newCategoryName = string.Empty; // Clear the input text
+                            Plugin.Configuration.Save();
+                            ImGui.CloseCurrentPopup();
+                        }
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Cancel"))
+                    {
+                        newCategoryName = string.Empty;
+                        ImGui.CloseCurrentPopup();
+                    }
+                    ImGui.EndPopup();
+                }
             }
         }
 
