@@ -12,7 +12,7 @@ namespace DarlingToDoList
     {
         private const string CommandName = "/dtd";
 
-        private DalamudPluginInterface PluginInterface { get; init; }
+        private IDalamudPluginInterface PluginInterface { get; init; }
         private ICommandManager CommandManager { get; init; }
         public Configuration Configuration { get; init; }
 
@@ -21,8 +21,8 @@ namespace DarlingToDoList
         private DebugWindow DebugWindow { get; init; }
 
         public Plugin(
-            [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-            [RequiredVersion("1.0")] ICommandManager commandManager)
+            IDalamudPluginInterface pluginInterface,
+            ICommandManager commandManager)
         {
             PluginInterface = pluginInterface;
             CommandManager = commandManager;
